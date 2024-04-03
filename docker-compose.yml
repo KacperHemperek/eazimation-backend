@@ -12,6 +12,8 @@ services:
       - "${DB_PORT}:5432"
     volumes:
       - eazimation_db:/var/lib/postgresql/data
+    env_file:
+      - .env
 
 volumes:
   eazimation_db:
