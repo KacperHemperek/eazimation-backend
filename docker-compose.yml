@@ -1,8 +1,9 @@
 version: '3.8'
 
 services:
-  psql:
+  eazimation_db:
     image: postgres:latest
+    container_name: eazimation_db
     environment:
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_USER: ${DB_USERNAME}
@@ -10,7 +11,7 @@ services:
     ports:
       - "${DB_PORT}:5432"
     volumes:
-      - psql_volume:/var/lib/postgresql/data
+      - eazimation_db:/var/lib/postgresql/data
 
 volumes:
-  psql_volume:
+  eazimation_db:
