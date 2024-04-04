@@ -37,6 +37,7 @@ func (s *Server) RegisterRoutes(
 		r.Get("/auth/{provider}", api.HttpHandler(addProviderToCtx(auth.HandleAuth(sessionStore))))
 		r.Get("/logout/{provider}", api.HttpHandler(addProviderToCtx(auth.HandleLogout())))
 		r.Get("/auth/user", api.HttpHandler(auth.HandleGetUser(sessionStore)))
+		r.Get("/auth/lambda", api.HttpHandler(auth.HandleLambdaAuth(sessionStore)))
 	})
 
 	return r

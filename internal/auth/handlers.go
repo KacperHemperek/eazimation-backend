@@ -25,6 +25,7 @@ func HandleAuthCallback(sessionStore SessionStore) api.HandlerFunc {
 }
 
 func HandleLogout() api.HandlerFunc {
+	// TODO: remove session from sessionStore when user logs out
 	return func(w http.ResponseWriter, r *http.Request) error {
 		err := gothic.Logout(w, r)
 		if err != nil {
@@ -59,23 +60,45 @@ func HandleGetUser(sessionStore SessionStore) api.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		sessionCookie, err := r.Cookie(SessionCookieName)
 		if err != nil {
-			return &api.Error{
-				Message: "Unauthorized",
-				Code:    http.StatusUnauthorized,
-				Cause:   err,
-			}
+			return NewUnauthorizedApiError(err)
 		}
 		session, err := sessionStore.GetSession(sessionCookie.Value)
 
 		if err != nil {
-			return &api.Error{
-				Message: "Unauthorized",
-				Code:    http.StatusUnauthorized,
-				Cause:   err,
-			}
+			return NewUnauthorizedApiError(err)
 		}
 
 		return api.WriteJSON(w, http.StatusOK, &response{User: session})
 
+	}
+}
+
+func HandleLambdaAuth(sessionStore SessionStore) api.HandlerFunc {
+	type response struct {
+		User *SessionUser `json:"user"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) error {
+		sessionID := r.URL.Query().Get("session_id")
+		if sessionID == "" {
+			return &api.Error{
+				Message: "session_id is missing from query params",
+				Code:    http.StatusBadRequest,
+			}
+		}
+		session, err := sessionStore.GetSession(sessionID)
+		if err != nil {
+			return NewUnauthorizedApiError(err)
+		}
+		return api.WriteJSON(w, http.StatusOK, &response{User: session})
+
+	}
+}
+
+func NewUnauthorizedApiError(err error) *api.Error {
+	return &api.Error{
+		Message: "Unautorized",
+		Code:    http.StatusUnauthorized,
+		Cause:   err,
 	}
 }
