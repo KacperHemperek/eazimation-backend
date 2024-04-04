@@ -1,6 +1,7 @@
 package server
 
 import (
+	"eazimation-backend/internal/auth"
 	"fmt"
 	"net/http"
 	"os"
@@ -23,10 +24,13 @@ func NewServer() *http.Server {
 	}
 	_ = database.New()
 
+	addProviderToContext := auth.NewAddProviderToContext()
+	memorySessionStore := auth.NewMemorySessionStore()
+
 	// Declare Server config
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(),
+		Handler:      NewServer.RegisterRoutes(addProviderToContext, memorySessionStore),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
