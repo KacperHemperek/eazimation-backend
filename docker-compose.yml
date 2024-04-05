@@ -14,6 +14,18 @@ services:
       - eazimation_db:/var/lib/postgresql/data
     env_file:
       - .env
+  redis:
+    image: redis:latest
+    container_name: redis
+    command: "/bin/sh -c 'redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}'"
+    ports:
+      - ${REDIS_PORT}:6379
+    volumes:
+      - redis:/data
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    restart: always
 
 volumes:
   eazimation_db:
+  redis:
