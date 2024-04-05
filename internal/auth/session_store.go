@@ -14,6 +14,7 @@ var (
 type SessionUser struct {
 	Email  string `json:"email"`
 	UserID string `json:"userId"`
+	Avatar string `json:"avatar"`
 }
 
 type SessionStore interface {
@@ -54,9 +55,10 @@ func NewMemorySessionStore() *MemorySessionStore {
 	}
 }
 
-func NewSessionUser(e, id string) *SessionUser {
+func NewSessionUser(id, email, avatar string) *SessionUser {
 	return &SessionUser{
-		Email:  e,
+		Email:  email,
 		UserID: id,
+		Avatar: avatar,
 	}
 }

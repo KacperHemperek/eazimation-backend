@@ -14,7 +14,7 @@ func HandleAuthCallback(sessionStore SessionStore) api.HandlerFunc {
 			return nil
 		}
 
-		newSess := NewSessionUser(user.Email, user.UserID)
+		newSess := NewSessionUser(user.UserID, user.Email, user.AvatarURL)
 		sessionID := sessionStore.AddSession(newSess)
 
 		SetSessionCookie(w, sessionID)
@@ -40,7 +40,7 @@ func HandleLogout() api.HandlerFunc {
 func HandleAuth(sessionStore SessionStore) api.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		if user, err := gothic.CompleteUserAuth(w, r); err == nil {
-			session := NewSessionUser(user.Email, user.UserID)
+			session := NewSessionUser(user.UserID, user.Email, user.AvatarURL)
 			sessionID := sessionStore.AddSession(session)
 
 			SetSessionCookie(w, sessionID)
