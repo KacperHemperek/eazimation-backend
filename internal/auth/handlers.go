@@ -14,9 +14,10 @@ func HandleAuthCallback(sessionStore SessionStore) api.HandlerFunc {
 			http.Redirect(w, r, "http://localhost:5173/auth/failed", http.StatusFound)
 			return nil
 		}
-
-		newSess := NewSessionUser(user.UserID, user.Email, user.AvatarURL)
-		sessionID := sessionStore.AddSession(newSess)
+		sessionID, err := sessionStore.AddSession(user.UserID)
+		if err != nil {
+			return err
+		}
 
 		SetSessionCookie(w, sessionID)
 
@@ -46,7 +47,13 @@ func HandleLogout(sessionStore SessionStore) api.HandlerFunc {
 		if err != nil {
 			return err
 		}
-		sessionStore.RemoveSession(sessionCookie.Value)
+
+		err = sessionStore.RemoveSession(sessionCookie.Value)
+
+		if err != nil {
+			return err
+		}
+
 		RemoveSessionCookie(w)
 		return api.WriteJSON(w, http.StatusOK, &response{Message: "User logged out successfully"})
 	}
@@ -55,8 +62,10 @@ func HandleLogout(sessionStore SessionStore) api.HandlerFunc {
 func HandleAuth(sessionStore SessionStore) api.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		if user, err := gothic.CompleteUserAuth(w, r); err == nil {
-			session := NewSessionUser(user.UserID, user.Email, user.AvatarURL)
-			sessionID := sessionStore.AddSession(session)
+			sessionID, err := sessionStore.AddSession(user.UserID)
+			if err != nil {
+				return err
+			}
 
 			SetSessionCookie(w, sessionID)
 			http.Redirect(w, r, "http://localhost:5173/auth/success", http.StatusFound)
@@ -69,7 +78,7 @@ func HandleAuth(sessionStore SessionStore) api.HandlerFunc {
 
 func HandleGetUser(sessionStore SessionStore) api.HandlerFunc {
 	type response struct {
-		User *SessionUser `json:"user"`
+		UserID string `json:"userId"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
@@ -83,14 +92,14 @@ func HandleGetUser(sessionStore SessionStore) api.HandlerFunc {
 			return NewUnauthorizedApiError(err)
 		}
 
-		return api.WriteJSON(w, http.StatusOK, &response{User: session})
+		return api.WriteJSON(w, http.StatusOK, &response{UserID: session})
 
 	}
 }
 
 func HandleLambdaAuth(sessionStore SessionStore) api.HandlerFunc {
 	type response struct {
-		User *SessionUser `json:"user"`
+		UserID string `json:"userId"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
@@ -105,7 +114,7 @@ func HandleLambdaAuth(sessionStore SessionStore) api.HandlerFunc {
 		if err != nil {
 			return NewUnauthorizedApiError(err)
 		}
-		return api.WriteJSON(w, http.StatusOK, &response{User: session})
+		return api.WriteJSON(w, http.StatusOK, &response{UserID: session})
 
 	}
 }
