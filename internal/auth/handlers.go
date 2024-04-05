@@ -2,6 +2,7 @@ package auth
 
 import (
 	"eazimation-backend/internal/api"
+	"errors"
 	"github.com/markbates/goth/gothic"
 	"net/http"
 )
@@ -19,21 +20,35 @@ func HandleAuthCallback(sessionStore SessionStore) api.HandlerFunc {
 
 		SetSessionCookie(w, sessionID)
 
-		http.Redirect(w, r, "http://localhost:5173/auth/success", http.StatusFound)
+		http.Redirect(w, r, "http://localhost:5173/", http.StatusFound)
 		return nil
 	}
 }
 
-func HandleLogout() api.HandlerFunc {
-	// TODO: remove session from sessionStore when user logs out
+func HandleLogout(sessionStore SessionStore) api.HandlerFunc {
+	type response struct {
+		Message string `json:"message"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) error {
-		err := gothic.Logout(w, r)
+		sessionCookie, err := r.Cookie(SessionCookieName)
+		if err != nil {
+			if errors.Is(err, http.ErrNoCookie) {
+				return &api.Error{
+					Message: "User is not logged in",
+					Code:    http.StatusUnauthorized,
+					Cause:   err,
+				}
+			}
+			return err
+		}
+		err = gothic.Logout(w, r)
 		if err != nil {
 			return err
 		}
-		w.Header().Set("Location", "/")
-		w.WriteHeader(http.StatusTemporaryRedirect)
-		return nil
+		sessionStore.RemoveSession(sessionCookie.Value)
+		RemoveSessionCookie(w)
+		return api.WriteJSON(w, http.StatusOK, &response{Message: "User logged out successfully"})
 	}
 }
 

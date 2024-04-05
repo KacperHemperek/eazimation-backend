@@ -15,3 +15,14 @@ func SetSessionCookie(w http.ResponseWriter, sessionID string) {
 		HttpOnly: true,
 	})
 }
+
+func RemoveSessionCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     SessionCookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   false,
+		HttpOnly: true,
+	})
+}
