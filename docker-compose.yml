@@ -26,6 +26,30 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     restart: always
 
+  api:
+    build:
+      dockerfile: api.dockerfile
+    container_name: api
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      PORT: ${PORT}
+      APP_ENV: ${APP_ENV}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    env_file:
+      - .env
+    restart: always
+
 volumes:
   eazimation_db:
   redis:
