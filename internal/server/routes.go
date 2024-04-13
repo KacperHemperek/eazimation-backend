@@ -7,8 +7,14 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/gorilla/sessions"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
+)
+
+var (
+	frontendUrl   = os.Getenv("FRONTEND_URL")
+	sessionSecret = os.Getenv("SESSION_SECRET")
 )
 
 func (s *Server) RegisterRoutes(
@@ -17,15 +23,14 @@ func (s *Server) RegisterRoutes(
 ) http.Handler {
 	r := chi.NewRouter()
 
-	store := sessions.NewCookieStore([]byte("secret"))
+	store := sessions.NewCookieStore([]byte(sessionSecret))
 
 	store.MaxAge(1000 * 60 * 60 * 24 * 7)
 	store.Options.HttpOnly = true
-	store.Options.Domain = "http://localhost:5173"
 	store.Options.Secure = false
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{frontendUrl},
 		AllowedMethods:   []string{http.MethodPut, http.MethodPost, http.MethodGet, http.MethodDelete},
 		AllowCredentials: true,
 	}))
