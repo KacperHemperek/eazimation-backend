@@ -12,6 +12,6 @@ RUN go mod download
 
 RUN make build
 
-EXPOSE 8080
+EXPOSE 2137
 
 CMD ["./main"]
