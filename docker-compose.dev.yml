@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  eazimation_db_dev:
+    image: postgres:latest
+    container_name: eazimation_db_dev
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - eazimation_db_dev:/var/lib/postgresql/data
+    env_file:
+      - .env
+  redis:
+    image: redis:latest
+    container_name: redis_dev
+    command: "/bin/sh -c 'redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}'"
+    ports:
+      - ${REDIS_PORT}:6379
+    volumes:
+      - redis_dev:/data
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    restart: always
+
+volumes:
+  eazimation_db_dev:
+  redis_dev:

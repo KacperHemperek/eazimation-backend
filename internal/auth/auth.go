@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/gorilla/sessions"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/markbates/goth"
@@ -14,9 +15,10 @@ var (
 	googleClientId     = os.Getenv("GOOGLE_CLIENT_ID")
 	googleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
 	sessionSecret      = os.Getenv("SESSION_SECRET")
+	clientURL          = os.Getenv("FRONTEND_URL")
+	apiPort            = os.Getenv("PORT")
 
-	googleCallbackUrl = "http://localhost:8080/api/v1/auth/google/callback"
-	clientURL         = "http://localhost:5173"
+	isProd = os.Getenv("APP_ENV") != "local"
 )
 
 func NewAuth() {
@@ -28,6 +30,14 @@ func NewAuth() {
 	store.Options.Domain = clientURL
 
 	gothic.Store = store
+	googleCbURL := getGoogleCbURL()
+	goth.UseProviders(google.New(googleClientId, googleClientSecret, googleCbURL))
+}
 
-	goth.UseProviders(google.New(googleClientId, googleClientSecret, googleCallbackUrl))
+func getGoogleCbURL() string {
+	path := "api/v1/auth/google/callback"
+	if isProd {
+		return fmt.Sprintf("https://ezm-api.kacperhemperek.com/%s", path)
+	}
+	return fmt.Sprintf("http://localhost:%s/%s", apiPort, path)
 }

@@ -3,15 +3,21 @@ package auth
 import (
 	"eazimation-backend/internal/api"
 	"errors"
+	"fmt"
 	"github.com/markbates/goth/gothic"
 	"net/http"
+	"os"
+)
+
+var (
+	frontendUrl = os.Getenv("FRONTEND_URL")
 )
 
 func HandleAuthCallback(sessionStore SessionStore) api.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		user, err := gothic.CompleteUserAuth(w, r)
 		if err != nil {
-			http.Redirect(w, r, "http://localhost:5173/auth/failed", http.StatusFound)
+			http.Redirect(w, r, fmt.Sprintf("%s/auth/failed", frontendUrl), http.StatusFound)
 			return nil
 		}
 		sessionID, err := sessionStore.AddSession(user.UserID)
@@ -21,7 +27,7 @@ func HandleAuthCallback(sessionStore SessionStore) api.HandlerFunc {
 
 		SetSessionCookie(w, sessionID)
 
-		http.Redirect(w, r, "http://localhost:5173/", http.StatusFound)
+		http.Redirect(w, r, frontendUrl, http.StatusFound)
 		return nil
 	}
 }
@@ -68,7 +74,7 @@ func HandleAuth(sessionStore SessionStore) api.HandlerFunc {
 			}
 
 			SetSessionCookie(w, sessionID)
-			http.Redirect(w, r, "http://localhost:5173/auth/success", http.StatusFound)
+			http.Redirect(w, r, frontendUrl, http.StatusFound)
 		} else {
 			gothic.BeginAuthHandler(w, r)
 		}
