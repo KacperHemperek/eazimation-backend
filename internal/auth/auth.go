@@ -16,10 +16,8 @@ var (
 	googleClientId     = os.Getenv("GOOGLE_CLIENT_ID")
 	googleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
 	sessionSecret      = os.Getenv("SESSION_SECRET")
-	clientURL          = os.Getenv("FRONTEND_URL")
 	apiPort            = os.Getenv("PORT")
-
-	isProd = os.Getenv("APP_ENV") != "local"
+	isProd             = os.Getenv("APP_ENV") == "production"
 )
 
 func NewAuth() {

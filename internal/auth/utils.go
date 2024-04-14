@@ -2,17 +2,12 @@ package auth
 
 import (
 	"net/http"
-	"os"
 	"time"
-)
-
-var (
-	frontendURL = os.Getenv("FRONTEND_URL")
 )
 
 func SetSessionCookie(w http.ResponseWriter, sessionID string) {
 	http.SetCookie(w, &http.Cookie{
-		Domain:   frontendURL[len("https://"):],
+		Domain:   getUrlWithoutProtocol(frontendUrl, isProd),
 		Name:     SessionCookieName,
 		Value:    sessionID,
 		Path:     "/",
@@ -24,7 +19,7 @@ func SetSessionCookie(w http.ResponseWriter, sessionID string) {
 
 func RemoveSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
-		Domain:   frontendURL[len("https://"):],
+		Domain:   getUrlWithoutProtocol(frontendUrl, isProd),
 		Name:     SessionCookieName,
 		Value:    "",
 		Path:     "/",
@@ -32,4 +27,11 @@ func RemoveSessionCookie(w http.ResponseWriter) {
 		Secure:   false,
 		HttpOnly: true,
 	})
+}
+
+func getUrlWithoutProtocol(url string, secure bool) string {
+	if secure {
+		return url[len("https://"):]
+	}
+	return url[len("http://"):]
 }
