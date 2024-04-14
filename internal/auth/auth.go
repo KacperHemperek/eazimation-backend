@@ -32,6 +32,7 @@ func NewAuth() {
 
 	gothic.Store = store
 	googleCbURL := getGoogleCbURL()
+	slog.Info("google callback url", "url", googleCbURL)
 	goth.UseProviders(google.New(googleClientId, googleClientSecret, googleCbURL))
 }
 
