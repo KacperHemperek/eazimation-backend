@@ -28,7 +28,8 @@ func NewAuth() {
 	store.MaxAge(maxAge)
 	store.Options.HttpOnly = true
 	store.Options.Secure = false
-	store.Options.Domain = clientURL
+	//store.Options.Domain = clientURL
+	store.Options.Domain = getStoreDomain()
 
 	gothic.Store = store
 	googleCbURL := getGoogleCbURL()
@@ -44,4 +45,11 @@ func getGoogleCbURL() string {
 	}
 	slog.Info("using development google callback url")
 	return fmt.Sprintf("http://localhost:%s/%s", apiPort, path)
+}
+
+func getStoreDomain() string {
+	if isProd {
+		return "ezm-api.kacperhemperek.com"
+	}
+	return "localhost"
 }
