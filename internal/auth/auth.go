@@ -7,6 +7,7 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
+	"log/slog"
 	"os"
 )
 
@@ -37,7 +38,9 @@ func NewAuth() {
 func getGoogleCbURL() string {
 	path := "api/v1/auth/google/callback"
 	if isProd {
+		slog.Info("using production google callback url")
 		return fmt.Sprintf("https://ezm-api.kacperhemperek.com/%s", path)
 	}
+	slog.Info("using development google callback url")
 	return fmt.Sprintf("http://localhost:%s/%s", apiPort, path)
 }
