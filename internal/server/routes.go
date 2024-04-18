@@ -18,7 +18,8 @@ var (
 )
 
 func (s *Server) RegisterRoutes(
-	addProviderToCtx auth.AddProviderToContextMiddleware,
+	addProviderToCtx auth.Middleware,
+	authMiddleware auth.Middleware,
 	sessionStore auth.SessionStore,
 ) http.Handler {
 	r := chi.NewRouter()
@@ -41,7 +42,7 @@ func (s *Server) RegisterRoutes(
 		r.Get("/auth/{provider}/callback", api.HttpHandler(addProviderToCtx(auth.HandleAuthCallback(sessionStore))))
 		r.Get("/auth/{provider}", api.HttpHandler(addProviderToCtx(auth.HandleAuth(sessionStore))))
 		r.Post("/auth/logout", api.HttpHandler(auth.HandleLogout(sessionStore)))
-		r.Get("/auth/user", api.HttpHandler(auth.HandleGetUser(sessionStore)))
+		r.Get("/auth/user", api.HttpHandler(authMiddleware(auth.HandleGetUser(sessionStore))))
 		r.Get("/auth/lambda", api.HttpHandler(auth.HandleLambdaAuth(sessionStore)))
 	})
 

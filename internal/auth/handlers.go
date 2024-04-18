@@ -88,18 +88,11 @@ func HandleGetUser(sessionStore SessionStore) api.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
-		sessionCookie, err := r.Cookie(SessionCookieName)
-		if err != nil {
-			return NewUnauthorizedApiError(err)
+		session, ok := r.Context().Value("session").(string)
+		if !ok {
+			return NewUnauthorizedApiError(fmt.Errorf("session is not a string"))
 		}
-		session, err := sessionStore.GetSession(sessionCookie.Value)
-
-		if err != nil {
-			return NewUnauthorizedApiError(err)
-		}
-
 		return api.WriteJSON(w, http.StatusOK, &response{UserID: session})
-
 	}
 }
 

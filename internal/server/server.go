@@ -26,13 +26,13 @@ func NewServer() *http.Server {
 	redis := database.NewRedisClient()
 
 	addProviderToContext := auth.NewAddProviderToContext()
-	//memorySessionStore := auth.NewMemorySessionStore()
 	redisSessionStore := auth.NewRedisSession(redis)
 
+	authMiddleware := auth.NewAuthMiddleware(redisSessionStore)
 	// Declare Server config
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(addProviderToContext, redisSessionStore),
+		Handler:      NewServer.RegisterRoutes(addProviderToContext, authMiddleware, redisSessionStore),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,

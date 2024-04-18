@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func NewAddProviderToContext() AddProviderToContextMiddleware {
+func NewAddProviderToContext() Middleware {
 	return func(h api.HandlerFunc) api.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) error {
 			provider := chi.URLParam(r, "provider")
@@ -24,4 +24,23 @@ func NewAddProviderToContext() AddProviderToContextMiddleware {
 	}
 }
 
-type AddProviderToContextMiddleware = func(h api.HandlerFunc) api.HandlerFunc
+func NewAuthMiddleware(sessionStore SessionStore) Middleware {
+	return func(h api.HandlerFunc) api.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) error {
+
+			sessionCookie, err := r.Cookie(SessionCookieName)
+			if err != nil {
+				return NewUnauthorizedApiError(err)
+			}
+			session, err := sessionStore.GetSession(sessionCookie.Value)
+
+			if err != nil {
+				return NewUnauthorizedApiError(err)
+			}
+			r = r.WithContext(context.WithValue(r.Context(), "session", session))
+			return h(w, r)
+		}
+	}
+}
+
+type Middleware = func(h api.HandlerFunc) api.HandlerFunc
