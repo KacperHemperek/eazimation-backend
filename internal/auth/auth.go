@@ -7,7 +7,6 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
-	"log/slog"
 	"os"
 )
 
@@ -26,22 +25,18 @@ func NewAuth() {
 	store.MaxAge(maxAge)
 	store.Options.HttpOnly = true
 	store.Options.Secure = false
-	//store.Options.Domain = clientURL
 	store.Options.Domain = getStoreDomain()
 
 	gothic.Store = store
 	googleCbURL := getGoogleCbURL()
-	slog.Info("google callback url", "url", googleCbURL)
 	goth.UseProviders(google.New(googleClientId, googleClientSecret, googleCbURL))
 }
 
 func getGoogleCbURL() string {
 	path := "api/v1/auth/google/callback"
 	if isProd {
-		slog.Info("using production google callback url")
 		return fmt.Sprintf("https://ezm-api.kacperhemperek.com/%s", path)
 	}
-	slog.Info("using development google callback url")
 	return fmt.Sprintf("http://localhost:%s/%s", apiPort, path)
 }
 
