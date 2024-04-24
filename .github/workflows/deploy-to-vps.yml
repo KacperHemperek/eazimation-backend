@@ -1,0 +1,24 @@
+name: Deploy backend to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd eazimation-backend && 
+            echo "${{ secrets.BACKEND_ENV }}" > .env
+            docker compose stop &&
+            git pull &&
+            docker compose up --build -d
