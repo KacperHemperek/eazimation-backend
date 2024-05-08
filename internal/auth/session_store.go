@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -14,13 +15,19 @@ var (
 	ErrSessionNotFound = errors.New("session not found")
 )
 
+type Session struct {
+	UserID int    `json:"userId"`
+	Email  string `json:"email"`
+	Avatar string `json:"avatar"`
+}
+
 type SessionStore interface {
 	// AddSession adds created session to session store and returns session id
-	AddSession(sess string) (string, error)
+	AddSession(sess Session) (string, error)
 	// RemoveSession removes session from session store
 	RemoveSession(sessionID string) error
 	// GetSession returns session from store and error if session was not found
-	GetSession(sessionID string) (string, error)
+	GetSession(sessionID string) (*Session, error)
 }
 
 type MemorySessionStore struct {
@@ -50,11 +57,17 @@ type RedisSession struct {
 	redis *redis.Client
 }
 
-func (s *RedisSession) AddSession(userID string) (string, error) {
+func (s *RedisSession) AddSession(sess Session) (string, error) {
 	sessionID := uuid.New().String()
 	sessionKey := getSessionKey(sessionID)
 	ctx := context.Background()
-	err := s.redis.Set(ctx, sessionKey, userID, 0).Err()
+
+	jsonSession, err := json.Marshal(sess)
+	if err != nil {
+		return "", err
+	}
+
+	err = s.redis.Set(ctx, sessionKey, jsonSession, 0).Err()
 	if err != nil {
 		return "", err
 	}
@@ -71,15 +84,22 @@ func (s *RedisSession) RemoveSession(sessionID string) error {
 	return nil
 }
 
-func (s *RedisSession) GetSession(sessionID string) (string, error) {
+func (s *RedisSession) GetSession(sessionID string) (*Session, error) {
 	ctx := context.Background()
 	sessionKey := getSessionKey(sessionID)
-	session, err := s.redis.Get(ctx, sessionKey).Result()
+	sessionJson, err := s.redis.Get(ctx, sessionKey).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return "", ErrSessionNotFound
+			return nil, ErrSessionNotFound
 		}
-		return "", err
+		return nil, err
+	}
+	session := &Session{}
+
+	err = json.Unmarshal([]byte(sessionJson), session)
+
+	if err != nil {
+		return nil, err
 	}
 	return session, nil
 }

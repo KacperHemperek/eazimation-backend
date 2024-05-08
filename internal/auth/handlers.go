@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/markbates/goth/gothic"
-	"log/slog"
 	"net/http"
 	"os"
 )
@@ -26,15 +25,12 @@ func HandleAuthCallback(sessionStore SessionStore, userService services.UserServ
 
 		user, err := userService.GetByEmail(authUser.Email)
 
-		slog.Info("selected user", "user", user, "error", err)
-
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
 
 		if err != nil && errors.Is(err, sql.ErrNoRows) {
 			createdUser, createUserError := userService.Create(authUser.Email, authUser.AvatarURL)
-			slog.Info("created user", "user", createdUser, "error", createUserError)
 
 			if createUserError != nil {
 				return createUserError
@@ -43,7 +39,11 @@ func HandleAuthCallback(sessionStore SessionStore, userService services.UserServ
 			user = createdUser
 		}
 
-		sessionID, err := sessionStore.AddSession(string(int32(user.ID)))
+		sessionID, err := sessionStore.AddSession(Session{
+			UserID: user.ID,
+			Email:  user.Email,
+			Avatar: user.Avatar,
+		})
 
 		if err != nil {
 			return err
@@ -89,10 +89,20 @@ func HandleLogout(sessionStore SessionStore) api.HandlerFunc {
 	}
 }
 
-func HandleAuth(sessionStore SessionStore) api.HandlerFunc {
+func HandleAuth(sessionStore SessionStore, userService services.UserService) api.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		if user, err := gothic.CompleteUserAuth(w, r); err == nil {
-			sessionID, err := sessionStore.AddSession(user.UserID)
+		if authUser, err := gothic.CompleteUserAuth(w, r); err == nil {
+			user, err := userService.GetByEmail(authUser.Email)
+
+			if err != nil {
+				return err
+			}
+
+			sessionID, err := sessionStore.AddSession(Session{
+				UserID: user.ID,
+				Email:  user.Email,
+				Avatar: user.Avatar,
+			})
 			if err != nil {
 				return err
 			}
@@ -107,23 +117,19 @@ func HandleAuth(sessionStore SessionStore) api.HandlerFunc {
 }
 
 func HandleGetUser() api.HandlerFunc {
-	type response struct {
-		UserID string `json:"userId"`
-	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
-		session, ok := r.Context().Value("session").(string)
-		if !ok {
-			return NewUnauthorizedApiError(fmt.Errorf("session is not a string"))
+		session, err := GetSessionFromRequest(*r)
+
+		if err != nil {
+			return NewUnauthorizedApiError(err)
 		}
-		return api.WriteJSON(w, http.StatusOK, &response{UserID: session})
+
+		return api.WriteJSON(w, http.StatusOK, session)
 	}
 }
 
 func HandleLambdaAuth(sessionStore SessionStore) api.HandlerFunc {
-	type response struct {
-		UserID string `json:"userId"`
-	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
 		sessionID := r.URL.Query().Get("session_id")
@@ -137,7 +143,7 @@ func HandleLambdaAuth(sessionStore SessionStore) api.HandlerFunc {
 		if err != nil {
 			return NewUnauthorizedApiError(err)
 		}
-		return api.WriteJSON(w, http.StatusOK, &response{UserID: session})
+		return api.WriteJSON(w, http.StatusOK, session)
 
 	}
 }

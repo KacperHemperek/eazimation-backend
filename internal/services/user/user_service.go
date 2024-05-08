@@ -3,7 +3,7 @@ package services
 import "eazimation-backend/internal/database"
 
 type UserService interface {
-	Create(name, email string) (*database.UserModel, error)
+	Create(email, avatar string) (*database.UserModel, error)
 	GetByID(id int) (*database.UserModel, error)
 	GetByEmail(email string) (*database.UserModel, error)
 }

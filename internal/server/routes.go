@@ -42,7 +42,7 @@ func (s *Server) RegisterRoutes(
 		r.Get("/health", api.HttpHandler(health.GetHealthHandler()))
 
 		r.Get("/auth/{provider}/callback", api.HttpHandler(addProviderToCtx(auth.HandleAuthCallback(sessionStore, userService))))
-		r.Get("/auth/{provider}", api.HttpHandler(addProviderToCtx(auth.HandleAuth(sessionStore))))
+		r.Get("/auth/{provider}", api.HttpHandler(addProviderToCtx(auth.HandleAuth(sessionStore, userService))))
 		r.Post("/auth/logout", api.HttpHandler(auth.HandleLogout(sessionStore)))
 		r.Get("/auth/user", api.HttpHandler(authMiddleware(auth.HandleGetUser())))
 		r.Get("/auth/lambda", api.HttpHandler(auth.HandleLambdaAuth(sessionStore)))

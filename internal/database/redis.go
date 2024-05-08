@@ -17,7 +17,6 @@ var (
 )
 
 func NewRedisClient() *redis.Client {
-	slog.Info("redis values", "host", redisHost, "address", redisAddr)
 	redisConnStr := fmt.Sprintf("%s:%s", redisHost, redisAddr)
 	slog.Info("Redis address", "address", redisConnStr)
 	client := redis.NewClient(&redis.Options{
