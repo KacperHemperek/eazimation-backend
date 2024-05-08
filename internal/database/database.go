@@ -12,12 +12,8 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-type Service interface {
-	Health() map[string]string
-}
-
-type service struct {
-	db *sql.DB
+type Store struct {
+	Client *sql.DB
 }
 
 var (
@@ -28,21 +24,22 @@ var (
 	host     = os.Getenv("DB_HOST")
 )
 
-func New() Service {
+func New() Store {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", username, password, host, port, database)
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
-	s := &service{db: db}
-	return s
+	return Store{
+		Client: db,
+	}
 }
 
-func (s *service) Health() map[string]string {
+func (s *Store) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	err := s.db.PingContext(ctx)
+	err := s.Client.PingContext(ctx)
 	if err != nil {
 		log.Fatalf(fmt.Sprintf("db down: %v", err))
 	}

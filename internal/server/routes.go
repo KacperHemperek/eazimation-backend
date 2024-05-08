@@ -4,7 +4,7 @@ import (
 	"eazimation-backend/internal/api"
 	"eazimation-backend/internal/auth"
 	"eazimation-backend/internal/handlers/health"
-	"eazimation-backend/internal/services"
+	"eazimation-backend/internal/services/user"
 	"github.com/go-chi/cors"
 	"github.com/gorilla/sessions"
 	"net/http"

@@ -3,10 +3,11 @@ package auth
 import (
 	"database/sql"
 	"eazimation-backend/internal/api"
-	"eazimation-backend/internal/services"
+	"eazimation-backend/internal/services/user"
 	"errors"
 	"fmt"
 	"github.com/markbates/goth/gothic"
+	"log/slog"
 	"net/http"
 	"os"
 )
@@ -25,12 +26,15 @@ func HandleAuthCallback(sessionStore SessionStore, userService services.UserServ
 
 		user, err := userService.GetByEmail(authUser.Email)
 
+		slog.Info("selected user", "user", user, "error", err)
+
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
 
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			createdUser, createUserError := userService.Create(authUser.Name, authUser.Email)
+		if err != nil && errors.Is(err, sql.ErrNoRows) {
+			createdUser, createUserError := userService.Create(authUser.Email, authUser.AvatarURL)
+			slog.Info("created user", "user", createdUser, "error", createUserError)
 
 			if createUserError != nil {
 				return createUserError
@@ -140,7 +144,7 @@ func HandleLambdaAuth(sessionStore SessionStore) api.HandlerFunc {
 
 func NewUnauthorizedApiError(err error) *api.Error {
 	return &api.Error{
-		Message: "Unautorized",
+		Message: "Unauthorized",
 		Code:    http.StatusUnauthorized,
 		Cause:   err,
 	}

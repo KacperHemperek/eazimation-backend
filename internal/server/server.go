@@ -2,7 +2,7 @@ package server
 
 import (
 	"eazimation-backend/internal/auth"
-	"eazimation-backend/internal/services"
+	"eazimation-backend/internal/services/user"
 	"fmt"
 	"net/http"
 	"os"
