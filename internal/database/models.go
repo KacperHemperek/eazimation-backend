@@ -1,7 +1,7 @@
 package database
 
 type UserModel struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
-	Name  string `json:"name"`
+	ID     int    `json:"id"`
+	Email  string `json:"email"`
+	Avatar string `json:"avatar"`
 }

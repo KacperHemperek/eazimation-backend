@@ -9,11 +9,12 @@ type UserService interface {
 }
 
 type PGUserService struct {
-	db database.Service
+	store database.Store
 }
 
-func (s *PGUserService) Create(name, email string) (*database.UserModel, error) {
-	return nil, nil
+func (s *PGUserService) Create(email, avatar string) (*database.UserModel, error) {
+	row := s.store.Client.QueryRow("insert into users (email, avatar) values($1, $2) returning id, email, avatar", email, avatar)
+	return scanUser(*row)
 }
 
 func (s *PGUserService) GetByID(id int) (*database.UserModel, error) {
@@ -21,11 +22,12 @@ func (s *PGUserService) GetByID(id int) (*database.UserModel, error) {
 }
 
 func (s *PGUserService) GetByEmail(email string) (*database.UserModel, error) {
-	return nil, nil
+	row := s.store.Client.QueryRow("select id, email, avatar from users where email = $1", email)
+	return scanUser(*row)
 }
 
-func NewPGUserService(db database.Service) *PGUserService {
+func NewPGUserService(db database.Store) *PGUserService {
 	return &PGUserService{
-		db: db,
+		store: db,
 	}
 }
