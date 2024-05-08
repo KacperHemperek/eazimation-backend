@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"database/sql"
 	"eazimation-backend/internal/api"
+	"eazimation-backend/internal/services"
 	"errors"
 	"fmt"
 	"github.com/markbates/goth/gothic"
@@ -13,14 +15,32 @@ var (
 	frontendUrl = os.Getenv("FRONTEND_URL")
 )
 
-func HandleAuthCallback(sessionStore SessionStore) api.HandlerFunc {
+func HandleAuthCallback(sessionStore SessionStore, userService services.UserService) api.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		user, err := gothic.CompleteUserAuth(w, r)
+		authUser, err := gothic.CompleteUserAuth(w, r)
 		if err != nil {
 			http.Redirect(w, r, fmt.Sprintf("%s/auth/failed", frontendUrl), http.StatusFound)
 			return nil
 		}
-		sessionID, err := sessionStore.AddSession(user.UserID)
+
+		user, err := userService.GetByEmail(authUser.Email)
+
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
+
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			createdUser, createUserError := userService.Create(authUser.Name, authUser.Email)
+
+			if createUserError != nil {
+				return createUserError
+			}
+
+			user = createdUser
+		}
+
+		sessionID, err := sessionStore.AddSession(string(int32(user.ID)))
+
 		if err != nil {
 			return err
 		}
@@ -82,7 +102,7 @@ func HandleAuth(sessionStore SessionStore) api.HandlerFunc {
 	}
 }
 
-func HandleGetUser(sessionStore SessionStore) api.HandlerFunc {
+func HandleGetUser() api.HandlerFunc {
 	type response struct {
 		UserID string `json:"userId"`
 	}

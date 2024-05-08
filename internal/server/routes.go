@@ -4,6 +4,7 @@ import (
 	"eazimation-backend/internal/api"
 	"eazimation-backend/internal/auth"
 	"eazimation-backend/internal/handlers/health"
+	"eazimation-backend/internal/services"
 	"github.com/go-chi/cors"
 	"github.com/gorilla/sessions"
 	"net/http"
@@ -21,6 +22,7 @@ func (s *Server) RegisterRoutes(
 	addProviderToCtx auth.Middleware,
 	authMiddleware auth.Middleware,
 	sessionStore auth.SessionStore,
+	userService services.UserService,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -39,10 +41,10 @@ func (s *Server) RegisterRoutes(
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", api.HttpHandler(health.GetHealthHandler()))
 
-		r.Get("/auth/{provider}/callback", api.HttpHandler(addProviderToCtx(auth.HandleAuthCallback(sessionStore))))
+		r.Get("/auth/{provider}/callback", api.HttpHandler(addProviderToCtx(auth.HandleAuthCallback(sessionStore, userService))))
 		r.Get("/auth/{provider}", api.HttpHandler(addProviderToCtx(auth.HandleAuth(sessionStore))))
 		r.Post("/auth/logout", api.HttpHandler(auth.HandleLogout(sessionStore)))
-		r.Get("/auth/user", api.HttpHandler(authMiddleware(auth.HandleGetUser(sessionStore))))
+		r.Get("/auth/user", api.HttpHandler(authMiddleware(auth.HandleGetUser())))
 		r.Get("/auth/lambda", api.HttpHandler(auth.HandleLambdaAuth(sessionStore)))
 	})
 
