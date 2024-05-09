@@ -1,6 +1,8 @@
 # Specifies a parent image
 FROM golang:1.22.0-bullseye
 
+ARG port
+
 # Creates an app directory to hold your app’s source code
 WORKDIR /app
 
@@ -12,6 +14,6 @@ RUN go mod download
 
 RUN make build
 
-EXPOSE 2137
+EXPOSE ${port}
 
 CMD ["./main"]

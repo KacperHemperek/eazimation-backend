@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/pressly/goose"
 	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -30,9 +32,21 @@ func New() Store {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return Store{
 		Client: db,
 	}
+}
+
+func (s *Store) Migrate() error {
+	err := goose.Up(s.Client, "./internal/database/migrations")
+
+	if err != nil {
+		return err
+	}
+
+	slog.Info("database migration successful")
+	return nil
 }
 
 func (s *Store) Health() map[string]string {

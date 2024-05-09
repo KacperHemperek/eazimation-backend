@@ -4,6 +4,7 @@ import (
 	"eazimation-backend/internal/auth"
 	"eazimation-backend/internal/services/user"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -24,6 +25,13 @@ func NewServer() *http.Server {
 		port: port,
 	}
 	db := database.New()
+
+	err := db.Migrate()
+
+	if err != nil {
+		log.Panic(err)
+	}
+
 	redis := database.NewRedisClient()
 
 	// initialize services
