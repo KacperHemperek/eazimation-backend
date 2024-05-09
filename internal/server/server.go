@@ -2,7 +2,9 @@ package server
 
 import (
 	"eazimation-backend/internal/auth"
+	"eazimation-backend/internal/services/user"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -22,17 +24,34 @@ func NewServer() *http.Server {
 	NewServer := &Server{
 		port: port,
 	}
-	_ = database.New()
+	db := database.New()
+
+	err := db.Migrate()
+
+	if err != nil {
+		log.Panic(err)
+	}
+
 	redis := database.NewRedisClient()
 
+	// initialize services
 	addProviderToContext := auth.NewAddProviderToContext()
 	redisSessionStore := auth.NewRedisSession(redis)
 
+	userService := services.NewPGUserService(db)
+
+	// initialize middlewares
 	authMiddleware := auth.NewAuthMiddleware(redisSessionStore)
+
 	// Declare Server config
 	server := &http.Server{
-		Addr:         fmt.Sprintf(":%d", NewServer.port),
-		Handler:      NewServer.RegisterRoutes(addProviderToContext, authMiddleware, redisSessionStore),
+		Addr: fmt.Sprintf(":%d", NewServer.port),
+		Handler: NewServer.RegisterRoutes(
+			addProviderToContext,
+			authMiddleware,
+			redisSessionStore,
+			userService,
+		),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,

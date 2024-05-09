@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"eazimation-backend/internal/api"
+	"errors"
 	"net/http"
 	"os"
 	"time"
@@ -32,4 +34,24 @@ func RemoveSessionCookie(w http.ResponseWriter) {
 		Secure:   isProd,
 		HttpOnly: true,
 	})
+}
+
+func GetSessionFromRequest(r http.Request) (*Session, error) {
+
+	session := r.Context().Value("session")
+
+	switch validSession := session.(type) {
+	case *Session:
+		return validSession, nil
+	default:
+		return nil, errors.New("session is invalid")
+	}
+}
+
+func NewUnauthorizedApiError(err error) *api.Error {
+	return &api.Error{
+		Message: "Unauthorized",
+		Code:    http.StatusUnauthorized,
+		Cause:   err,
+	}
 }

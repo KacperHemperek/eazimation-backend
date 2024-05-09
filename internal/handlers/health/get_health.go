@@ -1,4 +1,4 @@
-package health
+package healthhandlers
 
 import (
 	"eazimation-backend/internal/api"
