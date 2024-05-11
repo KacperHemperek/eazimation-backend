@@ -23,6 +23,7 @@ var (
 func (s *Server) RegisterRoutes(
 	addProviderToCtx auth.Middleware,
 	authMiddleware auth.Middleware,
+	serverAuthMiddleware auth.Middleware,
 	sessionStore auth.SessionStore,
 	userService services.UserService,
 ) http.Handler {
@@ -49,7 +50,7 @@ func (s *Server) RegisterRoutes(
 		r.Get("/auth/user", api.HttpHandler(authMiddleware(authhandlers.HandleGetUser())))
 		r.Get("/auth/lambda", api.HttpHandler(authhandlers.HandleLambdaAuth(sessionStore)))
 
-		r.Post("/videos", api.HttpHandler(authMiddleware(videohandlers.HandleCreateVideo())))
+		r.Post("/videos", api.HttpHandler(serverAuthMiddleware(videohandlers.HandleCreateVideo())))
 	})
 
 	return r

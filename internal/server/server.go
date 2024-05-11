@@ -42,6 +42,7 @@ func NewServer() *http.Server {
 
 	// initialize middlewares
 	authMiddleware := auth.NewAuthMiddleware(redisSessionStore)
+	serverAuthMiddleware := auth.NewServerAuthMiddleware(redisSessionStore)
 
 	// Declare Server config
 	server := &http.Server{
@@ -49,6 +50,7 @@ func NewServer() *http.Server {
 		Handler: NewServer.RegisterRoutes(
 			addProviderToContext,
 			authMiddleware,
+			serverAuthMiddleware,
 			redisSessionStore,
 			userService,
 		),
