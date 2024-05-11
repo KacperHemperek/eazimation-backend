@@ -5,6 +5,7 @@ import (
 	"eazimation-backend/internal/auth"
 	"eazimation-backend/internal/handlers/auth"
 	"eazimation-backend/internal/handlers/health"
+	"eazimation-backend/internal/handlers/video"
 	"eazimation-backend/internal/services/user"
 	"github.com/go-chi/cors"
 	"github.com/gorilla/sessions"
@@ -47,6 +48,8 @@ func (s *Server) RegisterRoutes(
 		r.Post("/auth/logout", api.HttpHandler(authhandlers.HandleLogout(sessionStore)))
 		r.Get("/auth/user", api.HttpHandler(authMiddleware(authhandlers.HandleGetUser())))
 		r.Get("/auth/lambda", api.HttpHandler(authhandlers.HandleLambdaAuth(sessionStore)))
+
+		r.Post("/videos", api.HttpHandler(authMiddleware(videohandlers.HandleCreateVideo())))
 	})
 
 	return r
