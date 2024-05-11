@@ -47,7 +47,7 @@ func (s *Server) RegisterRoutes(
 		r.Get("/auth/{provider}", api.HttpHandler(addProviderToCtx(authhandlers.HandleAuth(sessionStore, userService))))
 		r.Post("/auth/logout", api.HttpHandler(authhandlers.HandleLogout(sessionStore)))
 		r.Get("/auth/user", api.HttpHandler(authMiddleware(authhandlers.HandleGetUser())))
-		r.Get("/auth/lambda", api.HttpHandler(authMiddleware(authhandlers.HandleLambdaAuth(sessionStore))))
+		r.Get("/auth/lambda", api.HttpHandler(authMiddleware(authhandlers.HandleLambdaAuth())))
 
 		r.Post("/videos", api.HttpHandler(authMiddleware(videohandlers.HandleCreateVideo())))
 	})

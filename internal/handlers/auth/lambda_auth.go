@@ -6,16 +6,9 @@ import (
 	"net/http"
 )
 
-func HandleLambdaAuth(sessionStore auth.SessionStore) api.HandlerFunc {
+func HandleLambdaAuth() api.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		sessionID := r.URL.Query().Get("session_id")
-		if sessionID == "" {
-			return &api.Error{
-				Message: "session_id is missing from query params",
-				Code:    http.StatusBadRequest,
-			}
-		}
-		session, err := sessionStore.GetSession(sessionID)
+		session, err := auth.GetSessionFromRequest(*r)
 		if err != nil {
 			return auth.NewUnauthorizedApiError(err)
 		}
