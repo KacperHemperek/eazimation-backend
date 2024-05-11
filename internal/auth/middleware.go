@@ -28,31 +28,17 @@ func NewAddProviderToContext() Middleware {
 func NewAuthMiddleware(sessionStore SessionStore) Middleware {
 	return func(h api.HandlerFunc) api.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) error {
-
 			sessionCookie, err := r.Cookie(SessionCookieName)
+			var sessionID string
 			if err != nil {
-				return NewUnauthorizedApiError(err)
+				sessionID = r.Header.Get("SessionId")
+
+				if sessionID == "" {
+					return NewUnauthorizedApiError(errors.New("authentication header not found"))
+				}
+			} else {
+				sessionID = sessionCookie.Value
 			}
-			session, err := sessionStore.GetSession(sessionCookie.Value)
-
-			if err != nil {
-				return NewUnauthorizedApiError(err)
-			}
-			r = r.WithContext(context.WithValue(r.Context(), "session", session))
-			return h(w, r)
-		}
-	}
-}
-
-func NewServerAuthMiddleware(sessionStore SessionStore) Middleware {
-	return func(h api.HandlerFunc) api.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) error {
-			sessionID := r.Header.Get("SessionId")
-
-			if sessionID == "" {
-				return NewUnauthorizedApiError(errors.New("authentication header not found"))
-			}
-
 			session, err := sessionStore.GetSession(sessionID)
 
 			if err != nil {

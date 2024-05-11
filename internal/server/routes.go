@@ -5,7 +5,7 @@ import (
 	"eazimation-backend/internal/auth"
 	"eazimation-backend/internal/handlers/auth"
 	"eazimation-backend/internal/handlers/health"
-	"eazimation-backend/internal/handlers/video"
+	videohandlers "eazimation-backend/internal/handlers/video"
 	"eazimation-backend/internal/services/user"
 	"github.com/go-chi/cors"
 	"github.com/gorilla/sessions"
@@ -23,7 +23,6 @@ var (
 func (s *Server) RegisterRoutes(
 	addProviderToCtx auth.Middleware,
 	authMiddleware auth.Middleware,
-	serverAuthMiddleware auth.Middleware,
 	sessionStore auth.SessionStore,
 	userService services.UserService,
 ) http.Handler {
@@ -48,9 +47,9 @@ func (s *Server) RegisterRoutes(
 		r.Get("/auth/{provider}", api.HttpHandler(addProviderToCtx(authhandlers.HandleAuth(sessionStore, userService))))
 		r.Post("/auth/logout", api.HttpHandler(authhandlers.HandleLogout(sessionStore)))
 		r.Get("/auth/user", api.HttpHandler(authMiddleware(authhandlers.HandleGetUser())))
-		r.Get("/auth/lambda", api.HttpHandler(authhandlers.HandleLambdaAuth(sessionStore)))
+		r.Get("/auth/lambda", api.HttpHandler(authMiddleware(authhandlers.HandleLambdaAuth(sessionStore))))
 
-		r.Post("/videos", api.HttpHandler(serverAuthMiddleware(videohandlers.HandleCreateVideo())))
+		r.Post("/videos", api.HttpHandler(authMiddleware(videohandlers.HandleCreateVideo())))
 	})
 
 	return r
