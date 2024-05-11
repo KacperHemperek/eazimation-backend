@@ -5,8 +5,8 @@ import (
 	"eazimation-backend/internal/auth"
 	"eazimation-backend/internal/handlers/auth"
 	"eazimation-backend/internal/handlers/health"
-	videohandlers "eazimation-backend/internal/handlers/video"
-	"eazimation-backend/internal/services/user"
+	"eazimation-backend/internal/handlers/video"
+	"eazimation-backend/internal/services"
 	"github.com/go-chi/cors"
 	"github.com/gorilla/sessions"
 	"net/http"
@@ -25,6 +25,7 @@ func (s *Server) RegisterRoutes(
 	authMiddleware auth.Middleware,
 	sessionStore auth.SessionStore,
 	userService services.UserService,
+	videoService services.VideoService,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -49,7 +50,7 @@ func (s *Server) RegisterRoutes(
 		r.Get("/auth/user", api.HttpHandler(authMiddleware(authhandlers.HandleGetUser())))
 		r.Get("/auth/lambda", api.HttpHandler(authMiddleware(authhandlers.HandleLambdaAuth())))
 
-		r.Post("/videos", api.HttpHandler(authMiddleware(videohandlers.HandleCreateVideo())))
+		r.Post("/videos", api.HttpHandler(authMiddleware(videohandlers.HandleCreateVideo(videoService))))
 	})
 
 	return r

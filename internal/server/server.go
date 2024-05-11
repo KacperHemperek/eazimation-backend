@@ -2,7 +2,7 @@ package server
 
 import (
 	"eazimation-backend/internal/auth"
-	"eazimation-backend/internal/services/user"
+	"eazimation-backend/internal/services"
 	"fmt"
 	"log"
 	"net/http"
@@ -39,6 +39,7 @@ func NewServer() *http.Server {
 	redisSessionStore := auth.NewRedisSession(redis)
 
 	userService := services.NewPGUserService(db)
+	videoService := services.NewPGVideoService(db)
 
 	// initialize middlewares
 	authMiddleware := auth.NewAuthMiddleware(redisSessionStore)
@@ -51,6 +52,7 @@ func NewServer() *http.Server {
 			authMiddleware,
 			redisSessionStore,
 			userService,
+			videoService,
 		),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,

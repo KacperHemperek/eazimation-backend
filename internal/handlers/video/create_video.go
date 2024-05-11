@@ -3,17 +3,19 @@ package videohandlers
 import (
 	"eazimation-backend/internal/api"
 	"eazimation-backend/internal/auth"
+	"eazimation-backend/internal/services"
 	"net/http"
 )
 
-func HandleCreateVideo() api.HandlerFunc {
+func HandleCreateVideo(videoService services.VideoService) api.HandlerFunc {
 
-	//type request struct {
-	//	VideoID string `json:"videoId"`
-	//}
+	type request struct {
+		VideoData map[string]any `json:"videoData"`
+		VideoID   string         `json:"videoId"`
+	}
 
 	return func(w http.ResponseWriter, r *http.Request) error {
-		_, err := auth.GetSessionFromRequest(*r)
+		session, err := auth.GetSessionFromRequest(*r)
 
 		if err != nil {
 			return err
