@@ -5,7 +5,7 @@ import (
 )
 
 type VideoService interface {
-	Create(userID, videoID string, data any) (*database.VideoModel, error)
+	Create(userID int, videoID string, data any) (*database.VideoModel, error)
 	GetByID(id int) (*database.VideoModel, error)
 	GetUserVideos(userID int) ([]*database.VideoModel, error)
 }
@@ -14,7 +14,7 @@ type PGVideoService struct {
 	db database.Store
 }
 
-func (s *PGVideoService) Create(userID, videoID string, data any) (*database.VideoModel, error) {
+func (s *PGVideoService) Create(userID int, videoID string, data any) (*database.VideoModel, error) {
 	row := s.db.Client.QueryRow(
 		"insert into rendered_videos (user_id, video_id, video_data) values($1, $2, $3) returning id, user_id, video_id, video_data, created_at, updated_at;",
 		userID, videoID, data,

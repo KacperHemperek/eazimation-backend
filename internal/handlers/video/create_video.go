@@ -21,6 +21,18 @@ func HandleCreateVideo(videoService services.VideoService) api.HandlerFunc {
 			return err
 		}
 
+		var input = &request{}
+
+		if err = api.ReadBody(r, input); err != nil {
+			return api.NewBadRequestError(err)
+		}
+
+		_, err = videoService.Create(session.UserID, input.VideoID, input.VideoData)
+
+		if err != nil {
+			return err
+		}
+
 		return api.WriteJSON(w, http.StatusCreated, map[string]any{
 			"message": "video created successfully",
 		})

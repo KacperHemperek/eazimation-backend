@@ -67,6 +67,10 @@ func WriteJSON(w http.ResponseWriter, s int, v any) error {
 	return nil
 }
 
+func ReadBody(r *http.Request, v any) error {
+	return json.NewDecoder(r.Body).Decode(v)
+}
+
 type HandlerFunc = func(w http.ResponseWriter, r *http.Request) error
 
 type Error struct {
