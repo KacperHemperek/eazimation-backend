@@ -53,12 +53,16 @@ func (s *PGVideoService) GetByID(videoID int) (*database.VideoModel, error) {
 	return scanVideo(row)
 }
 
+// NewPGVideoService is a constructor for VideoService implementation
+// using postgres as a persistent storage
 func NewPGVideoService(db database.Store) *PGVideoService {
 	return &PGVideoService{
 		db: db,
 	}
 }
 
+// scanVideo scans sql query result in order:
+// id, user_id, video_id, video_data, created_at, updated_at
 func scanVideo(row SqlScanner) (*database.VideoModel, error) {
 	video := &database.VideoModel{}
 	err := row.Scan(&video.ID, &video.UserID, &video.VideoID, &video.VideoData, &video.CreatedAt, &video.UpdatedAt)
