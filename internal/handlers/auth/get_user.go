@@ -12,7 +12,7 @@ func HandleGetUser() api.HandlerFunc {
 		session, err := auth.GetSessionFromRequest(*r)
 
 		if err != nil {
-			return auth.NewUnauthorizedApiError(err)
+			return api.NewUnauthorizedApiError(err)
 		}
 
 		return api.WriteJSON(w, http.StatusOK, session)

@@ -34,7 +34,7 @@ func NewAuthMiddleware(sessionStore SessionStore) Middleware {
 				sessionID = r.Header.Get("SessionId")
 
 				if sessionID == "" {
-					return NewUnauthorizedApiError(errors.New("authentication header not found"))
+					return api.NewUnauthorizedApiError(errors.New("authentication header not found"))
 				}
 			} else {
 				sessionID = sessionCookie.Value
@@ -42,7 +42,7 @@ func NewAuthMiddleware(sessionStore SessionStore) Middleware {
 			session, err := sessionStore.GetSession(sessionID)
 
 			if err != nil {
-				return NewUnauthorizedApiError(err)
+				return api.NewUnauthorizedApiError(err)
 			}
 			r = r.WithContext(context.WithValue(r.Context(), "session", session))
 			return h(w, r)

@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"eazimation-backend/internal/api"
 	"errors"
 	"net/http"
 	"os"
@@ -45,13 +44,5 @@ func GetSessionFromRequest(r http.Request) (*Session, error) {
 		return validSession, nil
 	default:
 		return nil, errors.New("session is invalid")
-	}
-}
-
-func NewUnauthorizedApiError(err error) *api.Error {
-	return &api.Error{
-		Message: "Unauthorized",
-		Code:    http.StatusUnauthorized,
-		Cause:   err,
 	}
 }
