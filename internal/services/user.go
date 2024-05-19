@@ -1,7 +1,6 @@
 package services
 
 import (
-	"database/sql"
 	"eazimation-backend/internal/database"
 )
 
@@ -17,7 +16,7 @@ type PGUserService struct {
 
 func (s *PGUserService) Create(email, avatar string) (*database.UserModel, error) {
 	row := s.store.Client.QueryRow("insert into users (email, avatar) values($1, $2) returning id, email, avatar", email, avatar)
-	return scanUser(*row)
+	return scanUser(row)
 }
 
 func (s *PGUserService) GetByID(id int) (*database.UserModel, error) {
@@ -26,7 +25,7 @@ func (s *PGUserService) GetByID(id int) (*database.UserModel, error) {
 
 func (s *PGUserService) GetByEmail(email string) (*database.UserModel, error) {
 	row := s.store.Client.QueryRow("select id, email, avatar from users where email = $1", email)
-	return scanUser(*row)
+	return scanUser(row)
 }
 
 func NewPGUserService(db database.Store) *PGUserService {
@@ -35,7 +34,7 @@ func NewPGUserService(db database.Store) *PGUserService {
 	}
 }
 
-func scanUser(row sql.Row) (*database.UserModel, error) {
+func scanUser(row SqlScanner) (*database.UserModel, error) {
 	user := &database.UserModel{}
 	err := row.Scan(&user.ID, &user.Email, &user.Avatar)
 	if err != nil {
